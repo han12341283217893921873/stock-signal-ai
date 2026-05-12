@@ -9,13 +9,13 @@ import {
   watchlist,
   signalHistory,
   stockNotes,
-} from "../drizzle/schema";
+} from "../drizzle/schema.js";
 import type {
   InsertWatchlist,
   InsertSignalHistory,
   InsertStockNote,
-} from "../drizzle/schema";
-import { ENV } from "./_core/env";
+} from "../drizzle/schema.js";
+import { ENV } from "./_core/env.js";
 
 // ─── Custom Logger ───────────────────────────────────────────────────────────
 
@@ -325,7 +325,7 @@ import type {
   InsertSignalPerformance,
   InsertPortfolioSnapshot,
   InsertAlertHistory,
-} from "../drizzle/schema";
+} from "../drizzle/schema.js";
 import {
   portfolioPositions,
   alertConditions,
@@ -334,7 +334,7 @@ import {
   signalPerformance,
   portfolioSnapshots,
   alertHistory,
-} from "../drizzle/schema";
+} from "../drizzle/schema.js";
 import { sql, lt, isNull } from "drizzle-orm";
 
 export async function getPortfolioPositions(userId: number) {

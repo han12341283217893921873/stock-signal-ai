@@ -7,10 +7,10 @@
  */
 import { COOKIE_NAME, ONE_YEAR_MS } from "@shared/const";
 import type { Express, Request, Response } from "express";
-import * as db from "../db";
-import { ENV } from "./env";
-import { sdk } from "./sdk";
-import { getSessionCookieOptions } from "./cookies";
+import * as db from "../db.js";
+import { ENV } from "./env.js";
+import { sdk } from "./sdk.js";
+import { getSessionCookieOptions } from "./cookies.js";
 
 const GOOGLE_AUTH_URL = "https://accounts.google.com/o/oauth2/v2/auth";
 const GOOGLE_TOKEN_URL = "https://oauth2.googleapis.com/token";

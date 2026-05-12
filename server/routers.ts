@@ -1,31 +1,29 @@
 import { COOKIE_NAME } from "@shared/const";
-import { getSessionCookieOptions } from "./_core/cookies";
-import { systemRouter } from "./_core/systemRouter";
-import { publicProcedure, router } from "./_core/trpc";
-import { stockRouter } from "./routers/stock";
-import { watchlistRouter } from "./routers/watchlist";
-import { signalsRouter } from "./routers/signals";
-import { backtestRouter } from "./routers/backtest";
-import { aiRouter } from "./routers/ai";
-import { newsRouter } from "./routers/news";
-import { macroRouter } from "./routers/macro";
+import { getSessionCookieOptions } from "./_core/cookies.js";
+import { systemRouter } from "./_core/systemRouter.js";
+import { publicProcedure, router } from "./_core/trpc.js";
+import { stockRouter } from "./routers/stock.js";
+import { watchlistRouter } from "./routers/watchlist.js";
+import { signalsRouter } from "./routers/signals.js";
+import { backtestRouter } from "./routers/backtest.js";
+import { aiRouter } from "./routers/ai.js";
+import { newsRouter } from "./routers/news.js";
+import { macroRouter } from "./routers/macro.js";
 import {
   scannerRouter,
   tradeGuideRouter,
   scanHistoryRouter,
-} from "./routers/scanner";
-import { portfolioRouter } from "./routers/portfolio";
-import { alertsRouter } from "./routers/alerts";
-import { tradeLogsRouter } from "./routers/tradeLogs";
-import { chartPatternRouter } from "./routers/chartPattern";
-import { signalPerformanceRouter } from "./routers/signalPerformance";
-import { chatRouter } from "./routers/chat";
-import { notesRouter } from "./routers/notes";
-import { insightsRouter } from "./routers/insights";
-import { divergenceRouter } from "./routers/divergence";
-import { advancedRouter } from "./routers/advanced";
-
-
+} from "./routers/scanner.js";
+import { portfolioRouter } from "./routers/portfolio.js";
+import { alertsRouter } from "./routers/alerts.js";
+import { tradeLogsRouter } from "./routers/tradeLogs.js";
+import { chartPatternRouter } from "./routers/chartPattern.js";
+import { signalPerformanceRouter } from "./routers/signalPerformance.js";
+import { chatRouter } from "./routers/chat.js";
+import { notesRouter } from "./routers/notes.js";
+import { insightsRouter } from "./routers/insights.js";
+import { divergenceRouter } from "./routers/divergence.js";
+import { advancedRouter } from "./routers/advanced.js";
 
 export const appRouter = router({
   system: systemRouter,
@@ -59,7 +57,5 @@ export const appRouter = router({
   divergence: divergenceRouter,
   advanced: advancedRouter,
 });
-
-
 
 export type AppRouter = typeof appRouter;
