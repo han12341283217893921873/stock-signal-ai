@@ -1,0 +1,9 @@
+{
+  "query": "CREATE TABLE `watchlist` (\n\t`id` int AUTO_INCREMENT NOT NULL,\n\t`userId` int NOT NULL,\n\t`ticker` varchar(20) NOT NULL,\n\t`name` varchar(200),\n\t`addedAt` timestamp NOT NULL DEFAULT (now()),\n\tCONSTRAINT `watchlist_id` PRIMARY KEY(`id`)\n);",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway05.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 2nuuMPFN91QRjvJ.69efe293b706 --database k2E4AcHdJGJW9W9RHPb9ih --execute CREATE TABLE `watchlist` (\n\t`id` int AUTO_INCREMENT NOT NULL,\n\t`userId` int NOT NULL,\n\t`ticker` varchar(20) NOT NULL,\n\t`name` varchar(200),\n\t`addedAt` timestamp NOT NULL DEFAULT (now()),\n\tCONSTRAINT `watchlist_id` PRIMARY KEY(`id`)\n);",
+  "rows": [],
+  "messages": [],
+  "stdout": "",
+  "stderr": "",
+  "execution_time_ms": 1604
+}

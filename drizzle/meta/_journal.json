@@ -1,0 +1,41 @@
+{
+  "version": "7",
+  "dialect": "sqlite",
+  "entries": [
+    {
+      "idx": 0,
+      "version": "6",
+      "when": 1776901794149,
+      "tag": "0000_military_scarlet_spider",
+      "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "6",
+      "when": 1776920006187,
+      "tag": "0001_faithful_anthem",
+      "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "6",
+      "when": 1776922347053,
+      "tag": "0002_dry_black_crow",
+      "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "6",
+      "when": 1777010531168,
+      "tag": "0003_hard_kat_farrell",
+      "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "6",
+      "when": 1778557740312,
+      "tag": "0004_silent_gorgon",
+      "breakpoints": true
+    }
+  ]
+}

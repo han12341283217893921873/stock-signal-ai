@@ -1,0 +1,9 @@
+{
+  "query": "CREATE TABLE `signal_history` (\n\t`id` int AUTO_INCREMENT NOT NULL,\n\t`userId` int NOT NULL,\n\t`ticker` varchar(20) NOT NULL,\n\t`signalType` enum('buy','sell','neutral') NOT NULL,\n\t`strength` int,\n\t`price` decimal(12,4),\n\t`rsi` decimal(8,4),\n\t`macdSignal` varchar(20),\n\t`reason` text,\n\t`aiComment` text,\n\t`isRead` int NOT NULL DEFAULT 0,\n\t`createdAt` timestamp NOT NULL DEFAULT (now()),\n\tCONSTRAINT `signal_history_id` PRIMARY KEY(`id`)\n);",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway05.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 2nuuMPFN91QRjvJ.69efe293b706 --database k2E4AcHdJGJW9W9RHPb9ih --execute CREATE TABLE `signal_history` (\n\t`id` int AUTO_INCREMENT NOT NULL,\n\t`userId` int NOT NULL,\n\t`ticker` varchar(20) NOT NULL,\n\t`signalType` enum('buy','sell','neutral') NOT NULL,\n\t`strength` int,\n\t`price` decimal(12,4),\n\t`rsi` decimal(8,4),\n\t`macdSignal` varchar(20),\n\t`reason` text,\n\t`aiComment` text,\n\t`isRead` int NOT NULL DEFAULT 0,\n\t`createdAt` timestamp NOT NULL DEFAULT (now()),\n\tCONSTRAINT `signal_history_id` PRIMARY KEY(`id`)\n);",
+  "rows": [],
+  "messages": [],
+  "stdout": "",
+  "stderr": "",
+  "execution_time_ms": 2180
+}

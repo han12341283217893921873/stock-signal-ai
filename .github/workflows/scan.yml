@@ -1,0 +1,37 @@
+name: Scheduled Stock Scan
+
+on:
+  schedule:
+    # 매시간 0분마다 실행 (UTC 기준)
+    - cron: '0 * * * *'
+  workflow_dispatch: # 수동 실행 버튼 추가
+
+jobs:
+  scan:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          
+      - name: Install Dependencies
+        run: npm install
+        
+      - name: Run Auto Scan
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+          DATABASE_AUTH_TOKEN: ${{ secrets.DATABASE_AUTH_TOKEN }}
+          FINNHUB_API_KEY: ${{ secrets.FINNHUB_API_KEY }}
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+          OPENAI_API_URL: ${{ secrets.OPENAI_API_URL }}
+          OPENAI_MODEL: ${{ secrets.OPENAI_MODEL }}
+          KIS_APP_KEY: ${{ secrets.KIS_APP_KEY }}
+          KIS_APP_SECRET: ${{ secrets.KIS_APP_SECRET }}
+          VITE_APP_ID: stock_signal_ai
+          JWT_SECRET: ${{ secrets.JWT_SECRET }}
+          OAUTH_SERVER_URL: ${{ secrets.OAUTH_SERVER_URL }}
+        run: npx tsx scripts/auto-scan.ts

@@ -1,0 +1,54 @@
+// 이 파일은 routers.test.ts에 추가할 테스트 코드입니다.
+// describe("stock router") 블록 내에 추가하세요.
+
+describe("stock.topMovers", () => {
+  it("should return top gainers and losers", async () => {
+    const result = await caller.stock.topMovers();
+    
+    expect(result).toBeDefined();
+    expect(result.gainers).toBeDefined();
+    expect(result.losers).toBeDefined();
+    expect(Array.isArray(result.gainers)).toBe(true);
+    expect(Array.isArray(result.losers)).toBe(true);
+    expect(result.timestamp).toBeDefined();
+  });
+
+  it("should return up to 10 gainers", async () => {
+    const result = await caller.stock.topMovers();
+    expect(result.gainers.length).toBeLessThanOrEqual(10);
+  });
+
+  it("should return up to 10 losers", async () => {
+    const result = await caller.stock.topMovers();
+    expect(result.losers.length).toBeLessThanOrEqual(10);
+  });
+
+  it("gainers should have required fields", async () => {
+    const result = await caller.stock.topMovers();
+    if (result.gainers.length > 0) {
+      const gainer = result.gainers[0];
+      expect(gainer.rank).toBeDefined();
+      expect(gainer.ticker).toBeDefined();
+      expect(gainer.name).toBeDefined();
+      expect(gainer.price).toBeDefined();
+      expect(gainer.change).toBeDefined();
+      expect(gainer.changePercent).toBeDefined();
+      expect(gainer.volume).toBeDefined();
+      expect(gainer.market).toBe("US");
+    }
+  });
+
+  it("gainers should be sorted by changePercent descending", async () => {
+    const result = await caller.stock.topMovers();
+    for (let i = 1; i < result.gainers.length; i++) {
+      expect(result.gainers[i].changePercent).toBeLessThanOrEqual(result.gainers[i - 1].changePercent);
+    }
+  });
+
+  it("losers should be sorted by changePercent ascending", async () => {
+    const result = await caller.stock.topMovers();
+    for (let i = 1; i < result.losers.length; i++) {
+      expect(result.losers[i].changePercent).toBeGreaterThanOrEqual(result.losers[i - 1].changePercent);
+    }
+  });
+});
