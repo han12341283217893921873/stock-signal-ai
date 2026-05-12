@@ -1,17 +1,22 @@
 {
-  "version": 2,
-  "rewrites": [
-    {
-      "source": "/api/(.*)",
-      "destination": "/api/index.ts"
+    "version": 2,
+    "functions": {
+          "api/index.ts": {
+                  "includeFiles": "server/**"
+          }
     },
-    {
-      "source": "/trpc/(.*)",
-      "destination": "/api/index.ts"
-    },
-    {
-      "source": "/((?!api|trpc).*)",
-      "destination": "/index.html"
-    }
-  ]
+    "rewrites": [
+          {
+                  "source": "/api/(.*)",
+                  "destination": "/api/index.ts"
+          },
+          {
+                  "source": "/trpc/(.*)",
+                  "destination": "/api/index.ts"
+          },
+          {
+                  "source": "/((?!api|trpc).*)",
+                  "destination": "/index.html"
+          }
+    ]
 }
