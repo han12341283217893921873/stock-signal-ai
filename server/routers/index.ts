@@ -1,19 +1,19 @@
-import { router } from "./../_core/trpc";
-import { stockRouter } from "./stock";
-import { watchlistRouter } from "./watchlist";
-import { signalsRouter } from "./signals";
-import { backtestRouter } from "./backtest";
-import { aiRouter } from "./ai";
-import { newsRouter } from "./news";
-import { macroRouter } from "./macro";
-import { scannerRouter, tradeGuideRouter, scanHistoryRouter } from "./scanner";
-import { portfolioRouter } from "./portfolio";
-import { alertsRouter } from "./alerts";
-import { tradeLogsRouter } from "./tradeLogs";
-import { chartPatternRouter } from "./chartPattern";
-import { signalPerformanceRouter } from "./signalPerformance";
-import { chatRouter } from "./chat";
-import { insightsRouter } from "./insights";
+import { router } from "./../_core/trpc.js";
+import { stockRouter } from "./stock.js";
+import { watchlistRouter } from "./watchlist.js";
+import { signalsRouter } from "./signals.js";
+import { backtestRouter } from "./backtest.js";
+import { aiRouter } from "./ai.js";
+import { newsRouter } from "./news.js";
+import { macroRouter } from "./macro.js";
+import { scannerRouter, tradeGuideRouter, scanHistoryRouter } from "./scanner.js";
+import { portfolioRouter } from "./portfolio.js";
+import { alertsRouter } from "./alerts.js";
+import { tradeLogsRouter } from "./tradeLogs.js";
+import { chartPatternRouter } from "./chartPattern.js";
+import { signalPerformanceRouter } from "./signalPerformance.js";
+import { chatRouter } from "./chat.js";
+import { insightsRouter } from "./insights.js";
 
 export const appRouter = router({
   stock: stockRouter,

@@ -5,7 +5,7 @@
  *   GET /api/auth/google         → Google 로그인 페이지로 리다이렉트
  *   GET /api/auth/google/callback → 코드 교환 → 사용자 저장 → 세션 쿠키 발급 → 홈 리다이렉트
  */
-import { COOKIE_NAME, ONE_YEAR_MS } from "@shared/const";
+import { COOKIE_NAME, ONE_YEAR_MS } from "../../shared/const.js";
 import type { Express, Request, Response } from "express";
 import * as db from "../db.js";
 import { ENV } from "./env.js";
