@@ -15,11 +15,13 @@ import { startAlertScheduler } from "../alertScheduler.js";
 // import { setupWebSocketServer } from "../ws.js";
 import { registerOAuthRoutes } from "./oauth.js";
 import { registerGoogleOAuthRoutes } from "./googleOAuth.js";
+import cors from "cors";
 
 const app = express();
 
 app.use(express.json({ limit: "50mb" }));
 app.use(express.urlencoded({ limit: "50mb", extended: true }));
+app.use(cors());
 
 registerStorageProxy(app);
 registerGoogleOAuthRoutes(app);
