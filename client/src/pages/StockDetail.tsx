@@ -22,6 +22,7 @@ import {
   ArrowDownRight,
   Target,
   ShieldAlert,
+  Crosshair,
   Newspaper,
   Scan,
   ChevronUp,
@@ -922,6 +923,87 @@ export default function StockDetail() {
 
             {/* Sidebar Area (4/12) */}
             <div className="xl:col-span-4 space-y-6">
+              {/* 스마트 매매 가이드 */}
+              {tradeGuideData?.tradeGuide && (
+                <Card className="glass-card border-primary/20">
+                  <CardHeader className="pb-2 border-b border-border/40">
+                    <CardTitle className="text-sm font-bold flex items-center gap-2">
+                      <Crosshair className="h-4 w-4 text-primary" />
+                      스마트 매매 가이드
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="pt-3 space-y-3">
+                    {/* 가격 3종 */}
+                    <div className="grid grid-cols-3 gap-2 text-center">
+                      <div className="rounded-lg bg-sky-500/10 border border-sky-500/20 p-2">
+                        <p className="text-[10px] text-muted-foreground mb-1 flex items-center justify-center gap-1">
+                          <Target className="w-3 h-3" /> 진입가
+                        </p>
+                        <p className="text-xs font-bold font-mono text-sky-300">
+                          {tradeGuideData.currencySymbol}
+                          {tradeGuideData.tradeGuide.entryPrice.toLocaleString()}
+                        </p>
+                      </div>
+                      <div className="rounded-lg bg-emerald-500/10 border border-emerald-500/20 p-2">
+                        <p className="text-[10px] text-muted-foreground mb-1 flex items-center justify-center gap-1">
+                          <TrendingUp className="w-3 h-3" /> 1차 목표
+                        </p>
+                        <p className="text-xs font-bold font-mono text-emerald-400">
+                          {tradeGuideData.currencySymbol}
+                          {tradeGuideData.tradeGuide.targetPrice1.toLocaleString()}
+                        </p>
+                      </div>
+                      <div className="rounded-lg bg-red-500/10 border border-red-500/20 p-2">
+                        <p className="text-[10px] text-muted-foreground mb-1 flex items-center justify-center gap-1">
+                          <ShieldAlert className="w-3 h-3" /> 손절가
+                        </p>
+                        <p className="text-xs font-bold font-mono text-red-400">
+                          {tradeGuideData.currencySymbol}
+                          {tradeGuideData.tradeGuide.stopLoss.toLocaleString()}
+                        </p>
+                      </div>
+                    </div>
+
+                    {/* 2차 목표 + RR 비율 */}
+                    <div className="flex items-center gap-2 text-xs">
+                      <span className="text-muted-foreground">2차 목표</span>
+                      <span className="font-mono font-bold text-emerald-300">
+                        {tradeGuideData.currencySymbol}
+                        {tradeGuideData.tradeGuide.targetPrice2.toLocaleString()}
+                      </span>
+                      <span className="ml-auto text-muted-foreground">손익비</span>
+                      <Badge
+                        variant="outline"
+                        className={`text-[10px] font-mono font-bold ${
+                          tradeGuideData.tradeGuide.riskRewardRatio >= 2
+                            ? "border-emerald-500/50 text-emerald-400"
+                            : tradeGuideData.tradeGuide.riskRewardRatio >= 1
+                              ? "border-yellow-500/50 text-yellow-400"
+                              : "border-red-500/50 text-red-400"
+                        }`}
+                      >
+                        1 : {tradeGuideData.tradeGuide.riskRewardRatio}
+                      </Badge>
+                    </div>
+
+                    {/* 진입 조건 */}
+                    <div className="rounded-lg bg-muted/20 p-2.5 space-y-1.5 text-[11px]">
+                      <p className="text-sky-300 font-medium leading-snug">
+                        {tradeGuideData.tradeGuide.entryCondition}
+                      </p>
+                      <p className="text-muted-foreground leading-snug">
+                        {tradeGuideData.tradeGuide.exitCondition}
+                      </p>
+                    </div>
+
+                    {/* 포지션 사이즈 가이드 */}
+                    <p className="text-[10px] text-muted-foreground/70 leading-snug border-t border-border/30 pt-2">
+                      {tradeGuideData.tradeGuide.positionSizeGuide}
+                    </p>
+                  </CardContent>
+                </Card>
+              )}
+
               <FundamentalSummary fundamentals={displaySummary?.fundamentals} />
               <MacroContext
                 ticker={ticker}

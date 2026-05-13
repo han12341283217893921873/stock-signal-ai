@@ -1,6 +1,6 @@
 import { getPortfolioPositions, addPortfolioPosition, removePortfolioPosition, getUserById, updateUserBalance, addTradeLog } from "./db";
-import { getQuote, getUsdKrwRate, isKoreanTicker } from "./finnhub";
-import { getScanCache } from "./scanner";
+import { getQuote, getUsdKrwRate, isKoreanTicker, getHistoricalData } from "./finnhub";
+import { getScanCache, calculateTradeGuide } from "./scanner";
 
 /**
  * AI 오토파일럿 실행 로직
@@ -115,9 +115,6 @@ async function manageExits(userId: number, user: any) {
   const positions = await getPortfolioPositions(userId);
   if (positions.length === 0) return;
 
-  const STOP_LOSS_PCT = -5.0;      // -5% 손절
-  const TAKE_PROFIT_PCT = 15.0;    // +15% 익절
-
   for (const pos of positions) {
     try {
       const ticker = pos.ticker.toUpperCase();
@@ -129,28 +126,64 @@ async function manageExits(userId: number, user: any) {
       const pnlPct = ((currentPrice - pos.avgPrice) / pos.avgPrice) * 100;
       const exchangeRate = isKR ? await getUsdKrwRate() : 1;
 
+      // 스캔 캐시에서 동적 손절/목표가 가져오기
+      const allScan = [...getScanCache("us").results, ...getScanCache("kr").results];
+      const cached = allScan.find(r => r.ticker.toUpperCase() === ticker);
+
+      // 캐시에 tradeGuide가 있으면 사용, 없으면 실시간 계산
+      let dynamicStopLoss: number | null = cached?.tradeGuide?.stopLoss ?? null;
+      let dynamicTarget: number | null = cached?.tradeGuide?.targetPrice1 ?? null;
+
+      if (!dynamicStopLoss || !dynamicTarget) {
+        // 실시간으로 캔들 조회 후 계산 (fallback)
+        try {
+          const candles = await getHistoricalData(ticker, "3mo");
+          if (candles.length >= 20 && cached?.tradeGuide) {
+            const guide = calculateTradeGuide(candles, {
+              type: "buy",
+              strength: cached.signalStrength,
+              grade: cached.signalGrade as any,
+              gradeLabel: "",
+              gradeColor: "",
+              reasons: cached.signalReasons,
+              breakdown: { rsi: 0, macd: 0, ma: 0, volume: 0, momentum: 0, bollinger: 0 },
+              summary: "",
+              recommendedHold: cached.recommendedHold ?? "",
+              strategyLabel: cached.strategyLabel ?? "",
+            });
+            dynamicStopLoss = guide?.stopLoss ?? null;
+            dynamicTarget = guide?.targetPrice1 ?? null;
+          }
+        } catch {
+          // fallback to percentage-based
+        }
+      }
+
+      // 동적 수치 없으면 기본값 사용 (ATR 기반 대신 보수적 퍼센티지)
+      const stopLossPrice = dynamicStopLoss ?? pos.avgPrice * 0.93; // 기본 -7%
+      const targetPrice = dynamicTarget ?? pos.avgPrice * 1.15;    // 기본 +15%
+
+      const stopLossPct = ((stopLossPrice - pos.avgPrice) / pos.avgPrice * 100).toFixed(1);
+      const targetPct = ((targetPrice - pos.avgPrice) / pos.avgPrice * 100).toFixed(1);
+
       let shouldSell = false;
       let sellReason = "";
 
-      // 1. 손절 체크
-      if (pnlPct <= STOP_LOSS_PCT) {
+      // 1. 동적 손절가 이탈 체크
+      if (currentPrice <= stopLossPrice) {
         shouldSell = true;
-        sellReason = `손절 라인(${STOP_LOSS_PCT}%) 돌파 (현재 수익률: ${pnlPct.toFixed(2)}%)`;
+        sellReason = `손절가(${stopLossPrice.toLocaleString()}, ${stopLossPct}%) 이탈 (현재가: ${currentPrice.toLocaleString()}, 수익률: ${pnlPct.toFixed(2)}%)`;
       }
-      // 2. 익절 체크
-      else if (pnlPct >= TAKE_PROFIT_PCT) {
+      // 2. 동적 목표가 달성 체크
+      else if (currentPrice >= targetPrice) {
         shouldSell = true;
-        sellReason = `익절 목표(${TAKE_PROFIT_PCT}%) 달성 (현재 수익률: ${pnlPct.toFixed(2)}%)`;
+        sellReason = `1차 목표가(${targetPrice.toLocaleString()}, +${targetPct}%) 달성 (현재 수익률: ${pnlPct.toFixed(2)}%)`;
       }
       // 3. 강력 매도 신호 체크
       else {
-        const scanUs = getScanCache("us");
-        const scanKr = getScanCache("kr");
-        const latestScan = [...scanUs.results, ...scanKr.results].find(r => r.ticker.toUpperCase() === ticker);
-        
-        if (latestScan && latestScan.signalType === "sell" && latestScan.signalStrength >= 65) {
+        if (cached && cached.signalType === "sell" && cached.signalStrength >= 65) {
           shouldSell = true;
-          sellReason = `AI 매도 신호 감지 (${latestScan.signalStrength}점)`;
+          sellReason = `AI 매도 신호 감지 (${cached.signalStrength}점)`;
         }
       }
 

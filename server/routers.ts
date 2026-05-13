@@ -24,6 +24,7 @@ import { notesRouter } from "./routers/notes.js";
 import { insightsRouter } from "./routers/insights.js";
 import { divergenceRouter } from "./routers/divergence.js";
 import { advancedRouter } from "./routers/advanced.js";
+import { autopilotRouter } from "./routers/autopilot.js";
 
 export const appRouter = router({
   system: systemRouter,
@@ -56,6 +57,7 @@ export const appRouter = router({
   notes: notesRouter,
   divergence: divergenceRouter,
   advanced: advancedRouter,
+  autopilot: autopilotRouter,
 });
 
 export type AppRouter = typeof appRouter;

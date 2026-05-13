@@ -63,6 +63,82 @@ type JournalEntry = {
   pnlPct?: number;
 };
 
+// 서버사이드 AI 오토파일럿 패널
+function AutopilotPanel() {
+  const { data: status, refetch } = trpc.autopilot.status.useQuery(undefined, {
+    staleTime: 30_000,
+  });
+
+  const toggleMutation = trpc.autopilot.toggle.useMutation({
+    onSuccess: () => refetch(),
+  });
+
+  const runNowMutation = trpc.autopilot.runNow.useMutation({
+    onSuccess: () => {
+      toast.success("오토파일럿 1회 실행 완료");
+      refetch();
+    },
+    onError: (e) => toast.error(`실행 실패: ${e.message}`),
+  });
+
+  return (
+    <Card className="border-blue-500/30 shadow-lg">
+      <CardHeader>
+        <div className="flex justify-between items-center">
+          <div>
+            <CardTitle className="flex items-center gap-2 text-base">
+              <Bot className="w-5 h-5 text-blue-400" />
+              AI 오토파일럿 (서버 자동매매)
+            </CardTitle>
+            <CardDescription className="mt-1">
+              서버에서 실제 포트폴리오를 기반으로 손절·익절·자동매수를 실행합니다.
+              강력 매수 신호(85점+) 포착 시 자동 진입, -5% 손절 / +15% 익절.
+            </CardDescription>
+          </div>
+          <Switch
+            checked={status?.enabled ?? false}
+            onCheckedChange={(v) => toggleMutation.mutate({ enabled: v })}
+            disabled={toggleMutation.isPending}
+          />
+        </div>
+      </CardHeader>
+      <CardContent className="space-y-4">
+        <div className="flex gap-3 flex-wrap">
+          <div className="flex-1 min-w-[140px] p-3 rounded-lg bg-muted/30 border">
+            <p className="text-xs text-muted-foreground">현금 잔고</p>
+            <p className="font-bold font-mono text-sm">
+              ${(status?.cashBalance ?? 0).toLocaleString(undefined, { maximumFractionDigits: 0 })}
+            </p>
+          </div>
+          <div className="flex-1 min-w-[140px] p-3 rounded-lg bg-muted/30 border">
+            <p className="text-xs text-muted-foreground">실현 손익</p>
+            <p className={`font-bold font-mono text-sm ${(status?.realizedPnl ?? 0) >= 0 ? "text-green-500" : "text-red-500"}`}>
+              {(status?.realizedPnl ?? 0) >= 0 ? "+" : ""}
+              ${(status?.realizedPnl ?? 0).toLocaleString(undefined, { maximumFractionDigits: 2 })}
+            </p>
+          </div>
+          <div className="flex-1 min-w-[140px] p-3 rounded-lg bg-muted/30 border">
+            <p className="text-xs text-muted-foreground">상태</p>
+            <p className={`font-bold text-sm ${status?.enabled ? "text-green-400" : "text-muted-foreground"}`}>
+              {status?.enabled ? "실행 중" : "중지됨"}
+            </p>
+          </div>
+        </div>
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={() => runNowMutation.mutate()}
+          disabled={runNowMutation.isPending}
+          className="gap-2"
+        >
+          <Play className="w-3.5 h-3.5" />
+          {runNowMutation.isPending ? "실행 중..." : "지금 1회 실행"}
+        </Button>
+      </CardContent>
+    </Card>
+  );
+}
+
 // Mini Chart Component for Trading Desk
 function MiniChart({
   ticker,
@@ -866,6 +942,9 @@ export default function PaperTrading() {
                   </div>
                 </CardContent>
               </Card>
+
+              {/* 서버사이드 AI 오토파일럿 */}
+              <AutopilotPanel />
             </div>
           </TabsContent>
 

@@ -3,6 +3,7 @@ import {
   getHistoricalData,
   getTopMovers,
   getKRTopMovers,
+  isAnyMarketOpen,
 } from "./finnhub.js";
 import type { CandleData, TradeGuide } from "../shared/types";
 
@@ -646,26 +647,105 @@ function calculateATR(candles: CandleData[], period: number = 14): number {
   return recentTRs.reduce((a, b) => a + b, 0) / recentTRs.length;
 }
 
-/** 지지/저항선 계산 (최근 N일 고점/저점 기반) */
-function findSupportResistance(
+// ─── 스윙 고/저점 탐색 ────────────────────────────────────────────────────────
+
+/**
+ * 피벗 저점(swing low) 탐색: 좌우 N개 봉보다 낮은 최근 저점들을 반환
+ * 가장 최근의 유의미한 저점(진입 후보)과 그 아래의 더 강한 지지선을 각각 구한다.
+ */
+function findSwingLows(
   candles: CandleData[],
-  lookback: number = 20
-): {
-  support: number;
-  resistance: number;
-} {
-  const recent = candles.slice(-lookback);
-  const highs = recent.map(c => c.high);
-  const lows = recent.map(c => c.low);
+  lookback: number = 40,
+  wingBars: number = 3
+): { recent: number; major: number } {
+  const slice = candles.slice(-lookback);
+  const pivots: number[] = [];
+
+  for (let i = wingBars; i < slice.length - wingBars; i++) {
+    const mid = slice[i].low;
+    const leftOk = slice.slice(i - wingBars, i).every(c => c.low >= mid);
+    const rightOk = slice.slice(i + 1, i + wingBars + 1).every(c => c.low >= mid);
+    if (leftOk && rightOk) pivots.push(mid);
+  }
+
+  if (pivots.length === 0) {
+    const lows = slice.map(c => c.low);
+    return { recent: Math.min(...lows), major: Math.min(...lows) };
+  }
+
+  // recent: 가장 마지막 피벗 저점 (진입 직전 저점)
+  // major: 피벗들 중 하위 25% 수준 (강한 지지선)
+  const sorted = [...pivots].sort((a, b) => a - b);
   return {
-    support: Math.min(...lows),
-    resistance: Math.max(...highs),
+    recent: pivots[pivots.length - 1],
+    major: sorted[Math.floor(sorted.length * 0.25)] ?? sorted[0],
   };
 }
 
-import type { SignalType } from "../shared/types"; // Import might already exist, but if not it will error, wait, let me just use SignalType from types
+/**
+ * 피벗 고점(swing high) 탐색: 최근 주요 저항선과 가장 강한 저항선을 반환
+ */
+function findSwingHighs(
+  candles: CandleData[],
+  lookback: number = 60,
+  wingBars: number = 3
+): { recent: number; major: number } {
+  const slice = candles.slice(-lookback);
+  const pivots: number[] = [];
 
-/** 진입/청산 가이드 생성 */
+  for (let i = wingBars; i < slice.length - wingBars; i++) {
+    const mid = slice[i].high;
+    const leftOk = slice.slice(i - wingBars, i).every(c => c.high <= mid);
+    const rightOk = slice.slice(i + 1, i + wingBars + 1).every(c => c.high <= mid);
+    if (leftOk && rightOk) pivots.push(mid);
+  }
+
+  if (pivots.length === 0) {
+    const highs = slice.map(c => c.high);
+    return { recent: Math.max(...highs), major: Math.max(...highs) };
+  }
+
+  const sorted = [...pivots].sort((a, b) => b - a);
+  return {
+    recent: pivots[pivots.length - 1],
+    major: sorted[Math.floor(sorted.length * 0.25)] ?? sorted[0],
+  };
+}
+
+/** 이동평균 계산 */
+function calcMA(candles: CandleData[], period: number): number {
+  if (candles.length < period) return candles[candles.length - 1].close;
+  const slice = candles.slice(-period);
+  return slice.reduce((s, c) => s + c.close, 0) / period;
+}
+
+/**
+ * 피보나치 되돌림 / 확장 레벨 계산
+ * swingLow→swingHigh 기준으로 되돌림(진입 후보)과 확장(목표가) 레벨 반환
+ */
+function calcFibLevels(swingLow: number, swingHigh: number) {
+  const range = swingHigh - swingLow;
+  return {
+    // 되돌림 — 매수 진입 후보
+    fib236: swingHigh - range * 0.236,
+    fib382: swingHigh - range * 0.382,
+    fib500: swingHigh - range * 0.5,
+    fib618: swingHigh - range * 0.618,  // 황금비 — 강한 지지
+    // 확장 — 목표가 후보
+    ext1272: swingHigh + range * 0.272, // 127.2% 확장
+    ext1618: swingHigh + range * 0.618, // 161.8% 확장
+  };
+}
+
+import type { SignalType } from "../shared/types";
+
+/**
+ * 스마트 진입가/목표가/손절가 계산
+ *
+ * 진입가: 현재가가 아닌 기술적으로 의미 있는 저점 부근 (MA20, 피보나치 61.8%, 스윙 저점 중 가장 현실적인 값)
+ * 손절가: 진입 직전 스윙 저점 아래 ATR 0.3배 버퍼 (종목별 유동적)
+ * 목표가: 피보나치 확장 또는 주요 스윙 고점 (저항선 기반)
+ */
 export function calculateTradeGuide(
   candles: CandleData[],
   signal: import("../shared/types").TradeSignal
@@ -676,56 +756,100 @@ export function calculateTradeGuide(
   const latest = candles[candles.length - 1];
   const currentPrice = latest.close;
   const atr = calculateATR(candles, 14);
-  const { support, resistance } = findSupportResistance(candles, 20);
-  const isKR = currentPrice > 1000; // 한국 주식 여부 추정 (가격 단위로 판별)
+  if (atr <= 0) return null;
 
-  // 소수점 자리수 결정
-  const decimals = isKR
-    ? 0
-    : currentPrice < 10
-      ? 2
-      : currentPrice < 100
-        ? 2
-        : 2;
+  // 소수점 자리수 (한국 주식 0자리, 저가주 2자리)
+  const isKR = latest.close > 1000 && !String(latest.close).includes(".");
+  const decimals = isKR ? 0 : currentPrice < 10 ? 4 : 2;
   const round = (n: number) => Number(n.toFixed(decimals));
 
-  // 투자 기간(추천 보유 기간)에 따른 타겟 및 손절 배수 동적 설정
-  const hold = signal.recommendedHold || "";
+  const hold = signal.recommendedHold ?? "";
   const isShortTerm = hold.includes("초단기") || hold.includes("단기");
   const isLongTerm = hold.includes("장기") || hold.includes("수개월");
 
-  // 단타(초단기/단기): ATR의 1.2~2.0배 수준의 짧고 현실적인 수익
-  // 스윙(중기): ATR의 2.5~4.5배
-  // 장투(장기): ATR의 5.0~10.0배 이상 넓은 수익
-  const target1Mult = isShortTerm ? 1.2 : isLongTerm ? 5.0 : 2.5;
-  const target2Mult = isShortTerm ? 2.0 : isLongTerm ? 10.0 : 4.5;
-  const stopLossMult = isShortTerm ? 1.0 : isLongTerm ? 3.0 : 1.5;
+  const ma20 = calcMA(candles, 20);
+  const ma50 = calcMA(candles, 50);
+  const swingLows = findSwingLows(candles, isLongTerm ? 60 : 40);
+  const swingHighs = findSwingHighs(candles, isLongTerm ? 80 : 60);
+  const fib = calcFibLevels(swingLows.major, swingHighs.major);
 
   if (signalType === "buy") {
-    // 매수 가이드
-    const entryPrice = round(currentPrice); // 현재가 또는 약간 아래
-    
-    // 손절가는 지지선과 ATR 배수 중 더 타이트하거나 여유있는 것을 기간에 맞게 선택
-    const atrStop = currentPrice - atr * stopLossMult;
-    const stopLoss = isShortTerm ? round(Math.max(support, atrStop)) : round(Math.min(support, atrStop));
-    
+    // ── 진입가 결정 ──────────────────────────────────────────────────────────
+    // 우선순위: 피보나치 61.8% ≈ 현재가 → MA20 → 최근 스윙 저점
+    // 현재가가 이미 강한 지지선 부근이면 현재가, 과매수 상태면 되돌림 기다리는 가격 제시
+    const candidates: { price: number; label: string }[] = [
+      { price: fib.fib618, label: "피보나치 61.8% 되돌림" },
+      { price: fib.fib500, label: "피보나치 50% 되돌림" },
+      { price: fib.fib382, label: "피보나치 38.2% 되돌림" },
+      { price: ma20, label: "MA20 지지선" },
+      { price: ma50, label: "MA50 지지선" },
+      { price: swingLows.recent, label: "최근 스윙 저점" },
+    ];
+
+    // 현재가보다 낮은 후보 중 가장 높은 것 = 가장 가까운 지지 진입 레벨
+    // (현재가가 이미 지지선 위에 있을 때 다음 눌림목 진입을 안내)
+    const belowCurrent = candidates
+      .filter(c => c.price < currentPrice && c.price > currentPrice * 0.7)
+      .sort((a, b) => b.price - a.price);
+
+    // 현재가와 가장 가까운 지지선 (5% 이내면 현재가 진입 가능)
+    const bestCandidate = belowCurrent[0];
+    const gapToCurrent = bestCandidate
+      ? (currentPrice - bestCandidate.price) / currentPrice
+      : 0;
+
+    // 현재가가 지지선과 5% 이내: 현재가 또는 지지선에서 진입
+    // 5% 이상 떨어진 지지선: 눌림목 진입 가격 제시
+    const entryPrice = round(
+      gapToCurrent <= 0.05 || !bestCandidate
+        ? currentPrice
+        : bestCandidate.price
+    );
+    const entryLabel =
+      gapToCurrent <= 0.05 || !bestCandidate
+        ? "현재가 즉시 진입"
+        : `눌림목 대기 (${bestCandidate.label})`;
+
+    // ── 손절가 결정 ──────────────────────────────────────────────────────────
+    // 진입 직전 스윙 저점 아래 ATR 버퍼 (단타는 0.3배, 스윙 0.5배, 장기 1.0배)
+    const slBuffer = isShortTerm ? 0.3 : isLongTerm ? 1.0 : 0.5;
+    const swingStopRaw = swingLows.recent - atr * slBuffer;
+    // 최소 손절 거리: 진입가 대비 최소 1 ATR (너무 좁으면 시장 노이즈에 털림)
+    const minStop = entryPrice - atr * (isShortTerm ? 1.0 : isLongTerm ? 2.5 : 1.5);
+    const stopLoss = round(Math.min(swingStopRaw, minStop));
+
     const riskPerUnit = entryPrice - stopLoss;
-    
-    // 고정 퍼센티지가 아닌 현재 변동성(ATR)을 반영한 현실적인 목표가 설정
-    const targetPrice1 = round(entryPrice + atr * target1Mult);
-    const targetPrice2 = round(entryPrice + atr * target2Mult);
-    
+    const riskPct = riskPerUnit > 0
+      ? ((riskPerUnit / entryPrice) * 100).toFixed(1)
+      : "N/A";
+
+    // ── 목표가 결정 ──────────────────────────────────────────────────────────
+    // 1차: 가장 가까운 스윙 고점(저항선) 또는 피보나치 127.2% 확장
+    // 2차: 피보나치 161.8% 확장 또는 주요 스윙 고점
+    const nearResistance = swingHighs.recent > currentPrice
+      ? swingHighs.recent
+      : fib.ext1272;
+    const farResistance = Math.max(swingHighs.major, fib.ext1618);
+
+    // 1차 목표: 저항선이 너무 가까우면(2% 이내) 피보나치 확장으로 교체
+    const rawTarget1 = nearResistance > currentPrice * 1.02 ? nearResistance : fib.ext1272;
+    const targetPrice1 = round(Math.max(rawTarget1, entryPrice + riskPerUnit * 1.5));
+    const targetPrice2 = round(Math.max(farResistance, entryPrice + riskPerUnit * 3.0));
+
     const riskRewardRatio =
       riskPerUnit > 0
         ? Number(((targetPrice1 - entryPrice) / riskPerUnit).toFixed(2))
         : 0;
 
-    const riskPct =
-      riskPerUnit > 0 ? ((riskPerUnit / entryPrice) * 100).toFixed(1) : "N/A";
     const target1Pct = (((targetPrice1 - entryPrice) / entryPrice) * 100).toFixed(1);
     const target2Pct = (((targetPrice2 - entryPrice) / entryPrice) * 100).toFixed(1);
-
     const termLabel = isShortTerm ? "단기(단타)" : isLongTerm ? "장기(장투)" : "스윙";
+
+    // 현재가가 진입가보다 높으면 눌림목 대기임을 명시
+    const waitNote =
+      entryPrice < currentPrice * 0.98
+        ? ` (현재가 ${round(currentPrice).toLocaleString()} — 눌림목 대기 후 진입)`
+        : "";
 
     return {
       entryPrice,
@@ -734,32 +858,65 @@ export function calculateTradeGuide(
       stopLoss,
       riskRewardRatio,
       atr: round(atr),
-      positionSizeGuide: `[${termLabel} 전략] 일일 변동폭(ATR): ${((atr/entryPrice)*100).toFixed(1)}%. 손실 허용 ${riskPct}% — 권장 비중: ${riskPerUnit > 0 ? ((2 / Number(riskPct)) * 100).toFixed(0) : "N/A"}%`,
-      entryCondition: `현재가(${entryPrice.toLocaleString()}) 부근 진입. 변동성 기반 현실적 ${termLabel} 목표.`,
-      exitCondition: `1차 목표가(${targetPrice1.toLocaleString()}, +${target1Pct}%) 도달 시 50% 익절, 2차 목표가(${targetPrice2.toLocaleString()}, +${target2Pct}%) 청산. 손절가(${stopLoss.toLocaleString()}) 이탈 시 리스크 관리.`,
+      positionSizeGuide: `[${termLabel}] ATR: ${((atr / currentPrice) * 100).toFixed(1)}% | 리스크: ${riskPct}% | 권장 비중: ${riskPerUnit > 0 ? Math.min(((2 / Number(riskPct)) * 100), 30).toFixed(0) : "N/A"}% (계좌의 최대 30% 제한)`,
+      entryCondition: `${entryLabel}${waitNote}. 손절가(${stopLoss.toLocaleString()}) 위에서만 진입 유효.`,
+      exitCondition: `1차 목표(${targetPrice1.toLocaleString()}, +${target1Pct}%) 도달 시 절반 익절 → 2차 목표(${targetPrice2.toLocaleString()}, +${target2Pct}%) 전량 청산. 손절가 이탈 즉시 청산.`,
     };
+
   } else {
-    // 매도(공매도) 가이드
-    const entryPrice = round(currentPrice);
-    
-    const atrStop = currentPrice + atr * stopLossMult;
-    const stopLoss = isShortTerm ? round(Math.min(resistance, atrStop)) : round(Math.max(resistance, atrStop));
-    
+    // ── 매도(공매도) 가이드 ───────────────────────────────────────────────────
+    const candidates: { price: number; label: string }[] = [
+      { price: fib.fib236, label: "피보나치 23.6% 반등" },
+      { price: fib.fib382, label: "피보나치 38.2% 반등" },
+      { price: ma20, label: "MA20 저항선" },
+      { price: swingHighs.recent, label: "최근 스윙 고점" },
+    ];
+
+    const aboveCurrent = candidates
+      .filter(c => c.price > currentPrice && c.price < currentPrice * 1.3)
+      .sort((a, b) => a.price - b.price);
+
+    const bestCandidate = aboveCurrent[0];
+    const gapToCurrent = bestCandidate
+      ? (bestCandidate.price - currentPrice) / currentPrice
+      : 0;
+
+    const entryPrice = round(
+      gapToCurrent <= 0.05 || !bestCandidate
+        ? currentPrice
+        : bestCandidate.price
+    );
+    const entryLabel =
+      gapToCurrent <= 0.05 || !bestCandidate
+        ? "현재가 즉시 매도"
+        : `반등 저항 확인 후 매도 (${bestCandidate.label})`;
+
+    const slBuffer = isShortTerm ? 0.3 : isLongTerm ? 1.0 : 0.5;
+    const swingStop = swingHighs.recent + atr * slBuffer;
+    const minStop = entryPrice + atr * (isShortTerm ? 1.0 : isLongTerm ? 2.5 : 1.5);
+    const stopLoss = round(Math.max(swingStop, minStop));
+
     const riskPerUnit = stopLoss - entryPrice;
-    
-    const targetPrice1 = round(entryPrice - atr * target1Mult);
-    const targetPrice2 = round(entryPrice - atr * target2Mult);
-    
+    const riskPct = riskPerUnit > 0
+      ? ((riskPerUnit / entryPrice) * 100).toFixed(1)
+      : "N/A";
+
+    const nearSupport = swingLows.recent < currentPrice
+      ? swingLows.recent
+      : fib.fib618;
+    const farSupport = Math.min(swingLows.major, fib.ext1618 < entryPrice ? fib.ext1618 : swingLows.major);
+
+    const rawTarget1 = nearSupport < currentPrice * 0.98 ? nearSupport : fib.fib618;
+    const targetPrice1 = round(Math.min(rawTarget1, entryPrice - riskPerUnit * 1.5));
+    const targetPrice2 = round(Math.min(farSupport, entryPrice - riskPerUnit * 3.0));
+
     const riskRewardRatio =
       riskPerUnit > 0
         ? Number(((entryPrice - targetPrice1) / riskPerUnit).toFixed(2))
         : 0;
 
-    const riskPct =
-      riskPerUnit > 0 ? ((riskPerUnit / entryPrice) * 100).toFixed(1) : "N/A";
     const target1Pct = (((entryPrice - targetPrice1) / entryPrice) * 100).toFixed(1);
     const target2Pct = (((entryPrice - targetPrice2) / entryPrice) * 100).toFixed(1);
-    
     const termLabel = isShortTerm ? "단기(단타)" : isLongTerm ? "장기(장투)" : "스윙";
 
     return {
@@ -769,9 +926,9 @@ export function calculateTradeGuide(
       stopLoss,
       riskRewardRatio,
       atr: round(atr),
-      positionSizeGuide: `[${termLabel} 매도 전략] 일일 변동폭(ATR): ${((atr/entryPrice)*100).toFixed(1)}%. 손실 허용 ${riskPct}% — 권장 비중: ${riskPerUnit > 0 ? ((2 / Number(riskPct)) * 100).toFixed(0) : "N/A"}%`,
-      entryCondition: `현재가(${entryPrice.toLocaleString()}) 부근 매도(공매도) 진입. 변동성 기반 현실적 ${termLabel} 목표.`,
-      exitCondition: `1차 목표가(${targetPrice1.toLocaleString()}, +${target1Pct}%) 도달 시 익절, 2차 목표가(${targetPrice2.toLocaleString()}, +${target2Pct}%) 청산. 손절가(${stopLoss.toLocaleString()}) 돌파 시 손절.`,
+      positionSizeGuide: `[${termLabel} 매도] ATR: ${((atr / currentPrice) * 100).toFixed(1)}% | 리스크: ${riskPct}% | 권장 비중: ${riskPerUnit > 0 ? Math.min(((2 / Number(riskPct)) * 100), 30).toFixed(0) : "N/A"}%`,
+      entryCondition: `${entryLabel}. 손절가(${stopLoss.toLocaleString()}) 아래에서만 매도 포지션 유효.`,
+      exitCondition: `1차 목표(${targetPrice1.toLocaleString()}, -${target1Pct}%) 도달 시 절반 익절 → 2차 목표(${targetPrice2.toLocaleString()}, -${target2Pct}%) 전량 청산.`,
     };
   }
 }
@@ -883,8 +1040,8 @@ export async function runScanner(market: "us" | "kr" | "all"): Promise<void> {
 
   // 백그라운드 비동기 실행을 프로미스로 반환
   return (async () => {
-    const BATCH_SIZE = 10; // 10개씩 병렬 처리 (속도 향상)
-    const DELAY_MS = 1500; // 배치 간 1.5초 대기
+    const BATCH_SIZE = isAnyMarketOpen() ? 10 : 20; // 장외 시간엔 빠르게 처리
+    const DELAY_MS = isAnyMarketOpen() ? 1200 : 600; // 장외엔 딜레이 절반
 
     for (let i = 0; i < uniqueTickers.length; i += BATCH_SIZE) {
       const batch = uniqueTickers.slice(i, i + BATCH_SIZE);
