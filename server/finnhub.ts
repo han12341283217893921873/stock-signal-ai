@@ -25,6 +25,13 @@ import {
 } from "./yahoo";
 export { getHistoricalDataWithResolution };
 import { invokeLLM, parseJsonSafe } from "./_core/llm";
+import { getCircuitBreaker, withRetry } from "./_core/circuitBreaker";
+export {
+  isKoreanTicker,
+  getCurrencyInfo,
+  getMarketLabel,
+} from "./_core/market";
+import { isKoreanTicker, getCurrencyInfo, getMarketLabel } from "./_core/market";
 
 // Finnhub API 기본 설정
 const FINNHUB_API_BASE = "https://finnhub.io/api/v1";
@@ -33,31 +40,7 @@ export const finnhubClient = axios.create({
   timeout: 10000,
 });
 
-// ─── Market Helpers ─────────────────────────────────────────────────────────
-
-/** Detect if a ticker is Korean (KRX) */
-export function isKoreanTicker(ticker: string): boolean {
-  return ticker.endsWith(".KS") || ticker.endsWith(".KQ");
-}
-
-/** Get currency symbol for display */
-export function getCurrencyInfo(ticker: string): {
-  currency: string;
-  symbol: string;
-  locale: string;
-} {
-  if (isKoreanTicker(ticker)) {
-    return { currency: "KRW", symbol: "₩", locale: "ko-KR" };
-  }
-  return { currency: "USD", symbol: "$", locale: "en-US" };
-}
-
-/** Get market label */
-export function getMarketLabel(ticker: string): string {
-  if (ticker.endsWith(".KS")) return "KOSPI";
-  if (ticker.endsWith(".KQ")) return "KOSDAQ";
-  return "US";
-}
+// isKoreanTicker / getCurrencyInfo / getMarketLabel은 _core/market.ts에서 re-export
 
 // ─── Popular Korean Stocks for Quick Search ─────────────────────────────────
 
@@ -245,32 +228,28 @@ function isFinnhubRateLimitError(err: unknown): boolean {
   );
 }
 
+const finnhubBreaker = getCircuitBreaker("finnhub", {
+  failureThreshold: 5,
+  recoveryTimeMs: 30_000,
+});
+
 async function finnhubRequest<T>(
   path: string,
   params: Record<string, unknown>
 ) {
   const apiKey = ENV.finnhubApiKey;
 
-  try {
-    return await rateLimitedCall(() =>
-      finnhubClient.get<T>(path, {
-        params: { ...params, token: apiKey },
-      })
-    );
-  } catch (err) {
-    if (isFinnhubRateLimitError(err)) {
-      console.warn(
-        `[Finnhub] Rate limit hit for ${path}. Retrying after delay...`
-      );
-      await new Promise(resolve => setTimeout(resolve, 2000));
-      return rateLimitedCall(() =>
-        finnhubClient.get<T>(path, {
-          params: { ...params, token: apiKey },
-        })
-      );
-    }
-    throw err;
-  }
+  return finnhubBreaker.call(() =>
+    withRetry(
+      () =>
+        rateLimitedCall(() =>
+          finnhubClient.get<T>(path, {
+            params: { ...params, token: apiKey },
+          })
+        ),
+      { maxRetries: 2, baseDelayMs: 1000 }
+    )
+  );
 }
 
 // ─── 백그라운드 프리페치 레지스트리 ──────────────────────────────────────────

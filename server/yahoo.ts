@@ -1,5 +1,11 @@
 import YahooFinance from "yahoo-finance2";
 import { getKisKRQuote, getKisKRCandles } from "./kis.js";
+import { getCircuitBreaker } from "./_core/circuitBreaker.js";
+import {
+  isKoreanTicker,
+  getCurrencyInfo,
+  getMarketLabel,
+} from "./_core/market.js";
 import type {
   CandleData,
   TechnicalIndicators,
@@ -13,31 +19,8 @@ import type {
 // yahoo-finance2 v3 requires instantiation
 const yahooFinance = new YahooFinance({ suppressNotices: ["yahooSurvey"] });
 
-// ─── Market Helpers ─────────────────────────────────────────────────────────
-
-/** Detect if a ticker is Korean (KRX) */
-export function isKoreanTicker(ticker: string): boolean {
-  return ticker.endsWith(".KS") || ticker.endsWith(".KQ");
-}
-
-/** Get currency symbol for display */
-export function getCurrencyInfo(ticker: string): {
-  currency: string;
-  symbol: string;
-  locale: string;
-} {
-  if (isKoreanTicker(ticker)) {
-    return { currency: "KRW", symbol: "₩", locale: "ko-KR" };
-  }
-  return { currency: "USD", symbol: "$", locale: "en-US" };
-}
-
-/** Get market label */
-export function getMarketLabel(ticker: string): string {
-  if (ticker.endsWith(".KS")) return "KOSPI";
-  if (ticker.endsWith(".KQ")) return "KOSDAQ";
-  return "US";
-}
+// 마켓 유틸은 _core/market.ts에서 import하여 사용 (isKoreanTicker, getCurrencyInfo, getMarketLabel)
+export { isKoreanTicker, getCurrencyInfo, getMarketLabel };
 
 // ─── Popular Korean Stocks for Quick Search ─────────────────────────────────
 
@@ -239,9 +222,14 @@ setInterval(async () => {
   }
 }, 15 * 1000);
 
-// Rate limiter: 최소 1.2초 간격으로 Yahoo Finance 호출 (약간 빠르게)
+// Rate limiter: 최소 600ms 간격으로 Yahoo Finance 호출
 let lastCallTime = 0;
 let lastCallPromise = Promise.resolve();
+
+const yahooBreaker = getCircuitBreaker("yahoo", {
+  failureThreshold: 5,
+  recoveryTimeMs: 30_000,
+});
 
 async function rateLimitedCall<T>(fn: () => Promise<T>): Promise<T> {
   const resultPromise = lastCallPromise.then(async () => {
@@ -251,7 +239,7 @@ async function rateLimitedCall<T>(fn: () => Promise<T>): Promise<T> {
       await new Promise(r => setTimeout(r, 600 - elapsed));
     }
     lastCallTime = Date.now();
-    return fn();
+    return yahooBreaker.call(fn);
   });
   lastCallPromise = resultPromise.then(() => {}).catch(() => {});
   return resultPromise as Promise<T>;

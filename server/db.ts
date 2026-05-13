@@ -893,6 +893,23 @@ export async function updateUserNotificationSettings(
   }
 }
 
+export async function updateUserAutopilot(userId: number, enabled: 0 | 1) {
+  const db = await getDb();
+  if (!db) return;
+  try {
+    await db
+      .update(users)
+      .set({ autopilotEnabled: enabled })
+      .where(eq(users.id, userId));
+  } catch (error) {
+    logError("Database.updateUserAutopilot", error);
+    throw new TRPCError({
+      code: "INTERNAL_SERVER_ERROR",
+      message: `Failed to update autopilot setting: ${error instanceof Error ? error.message : String(error)}`,
+    });
+  }
+}
+
 export async function updateUserBalance(
   userId: number,
   cashBalance: number,

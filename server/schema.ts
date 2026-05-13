@@ -20,6 +20,7 @@ export const users = sqliteTable("users", {
   // ?뱁썒/?대찓???뚮┝ 梨꾨꼸 ?ㅼ젙
   notifyEmail: text("notifyEmail"),
   notifyWebhook: text("notifyWebhook"),
+  autopilotEnabled: integer("autopilotEnabled").default(0).notNull(),
   cashBalance: real("cashBalance").default(100000).notNull(), // ?쒖옉 ?먮낯湲?$100,000
   krwBalance: real("krwBalance").default(30000000).notNull(), // ?쒖옉 ?먮낯湲???0,000,000
   realizedPnl: real("realizedPnl").default(0).notNull(), // USD ?ㅽ쁽 ?먯씡

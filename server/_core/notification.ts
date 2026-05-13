@@ -118,6 +118,37 @@ async function sendEmailNotification(
   }
 }
 
+/** 웹훅 URL이 내부 네트워크를 가리키지 않는지 검증 (SSRF 방지) */
+function assertSafeWebhookUrl(url: string): void {
+  let parsed: URL;
+  try {
+    parsed = new URL(url);
+  } catch {
+    throw new Error("웹훅 URL 형식이 올바르지 않습니다.");
+  }
+
+  if (!["http:", "https:"].includes(parsed.protocol)) {
+    throw new Error("웹훅 URL은 http 또는 https 프로토콜만 허용됩니다.");
+  }
+
+  const h = parsed.hostname.toLowerCase().replace(/\[|\]/g, "");
+  const blocked = [
+    /^localhost$/,
+    /^127\./,
+    /^0\.0\.0\.0$/,
+    /^10\./,
+    /^172\.(1[6-9]|2[0-9]|3[01])\./,
+    /^192\.168\./,
+    /^169\.254\./,
+    /^::1$/,
+    /^fc[0-9a-f]{2}:/i,
+    /^fe[89ab][0-9a-f]:/i,
+  ];
+  if (blocked.some(re => re.test(h))) {
+    throw new Error("웹훅 URL이 내부 주소를 가리킬 수 없습니다.");
+  }
+}
+
 /**
  * 웹훅 알림 발송 (HTTP POST)
  */
@@ -126,6 +157,12 @@ async function sendWebhookNotification(
   title: string,
   content: string
 ): Promise<void> {
+  try {
+    assertSafeWebhookUrl(webhookUrl);
+  } catch (err) {
+    console.warn(`[Notification] 웹훅 URL 검증 실패: ${(err as Error).message}`);
+    return;
+  }
   try {
     const response = await fetch(webhookUrl, {
       method: "POST",

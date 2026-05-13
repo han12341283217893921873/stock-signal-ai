@@ -11,7 +11,7 @@ import { appRouter } from "../routers.js";
 import { createContext } from "./context.js";
 import { serveStatic, setupVite } from "./vite.js";
 import { startAlertScheduler } from "../alertScheduler.js";
-// import { startSignalPerformanceScheduler } from "../signalPerformanceScheduler.js";
+import { startSignalPerformanceScheduler } from "../signalPerformanceScheduler.js";
 // import { setupWebSocketServer } from "../ws.js";
 import { registerOAuthRoutes } from "./oauth.js";
 import { registerGoogleOAuthRoutes } from "./googleOAuth.js";
@@ -59,7 +59,7 @@ async function startServer() {
     server.listen(PORT, "0.0.0.0", () => {
       console.log(`Server running on port ${PORT}`);
       startAlertScheduler();
-      // startSignalPerformanceScheduler();
+      startSignalPerformanceScheduler();
     });
   }
 }

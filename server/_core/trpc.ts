@@ -11,7 +11,15 @@ const t = initTRPC.context<TrpcContext>().create({
 export { t };
 
 export const router = t.router;
-export const publicProcedure = t.procedure;
+
+/** 공개 API 프로시저 - IP당 분당 120회 제한 */
+export const publicProcedure = t.procedure.use(
+  t.middleware(async ({ ctx, next }) => {
+    const ip = getClientIp(ctx.req);
+    checkRateLimit(`public:${ip}`, 120, 60 * 1000);
+    return next();
+  })
+);
 
 const requireUser = t.middleware(async opts => {
   const { ctx, next } = opts;
