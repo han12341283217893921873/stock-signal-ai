@@ -1,4 +1,4 @@
-import { publicProcedure, router } from "../_core/trpc";
+import { publicProcedure, router } from "../_core/trpc.js";
 import { z } from "zod";
 import {
   getStockSummary,
@@ -11,7 +11,7 @@ import {
   isAnyMarketOpen,
   getCompanyNews,
   getBasicFinancials,
-} from "../finnhub";
+} from "../finnhub.js";
 
 export const stockRouter = router({
   /** 종목 요약 정보 (시세 + 지표 + 신호) */

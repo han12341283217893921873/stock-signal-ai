@@ -1,9 +1,9 @@
-import { publicProcedure, scannerProcedure, router } from "../_core/trpc";
+import { publicProcedure, scannerProcedure, router } from "../_core/trpc.js";
 import { z } from "zod";
-import { runScanner, getScanCache, calculateTradeGuide } from "../scanner";
-import { saveScanHistory, getScanHistoryList } from "../db";
-import { getStockSummary, getHistoricalData } from "../finnhub";
-import { invokeLLM } from "../_core/llm";
+import { runScanner, getScanCache, calculateTradeGuide } from "../scanner.js";
+import { saveScanHistory, getScanHistoryList } from "../db.js";
+import { getStockSummary, getHistoricalData } from "../finnhub.js";
+import { invokeLLM } from "../_core/llm.js";
 
 const TICKER_REGEX = /^[A-Z0-9.^]{1,20}$/;
 

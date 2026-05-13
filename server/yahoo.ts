@@ -1,5 +1,5 @@
 import YahooFinance from "yahoo-finance2";
-import { getKisKRQuote, getKisKRCandles } from "./kis";
+import { getKisKRQuote, getKisKRCandles } from "./kis.js";
 import type {
   CandleData,
   TechnicalIndicators,

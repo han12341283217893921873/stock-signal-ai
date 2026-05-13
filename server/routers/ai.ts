@@ -3,18 +3,18 @@ import {
   aiProcedure,
   publicProcedure,
   router,
-} from "../_core/trpc";
+} from "../_core/trpc.js";
 import { z } from "zod";
 import {
   getStockSummary,
   getHistoricalData,
   getBasicFinancials,
   getCompanyNews,
-} from "../finnhub";
-import { getHistoricalDataWithResolution } from "../yahoo";
-import { addSignalHistory } from "../db";
-import { invokeLLM } from "../_core/llm";
-import { ENV } from "../_core/env";
+} from "../finnhub.js";
+import { getHistoricalDataWithResolution } from "../yahoo.js";
+import { addSignalHistory } from "../db.js";
+import { invokeLLM } from "../_core/llm.js";
+import { ENV } from "../_core/env.js";
 
 export const aiRouter = router({
   analyze: protectedProcedure

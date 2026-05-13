@@ -3,7 +3,7 @@ import {
   getHistoricalData,
   getTopMovers,
   getKRTopMovers,
-} from "./finnhub";
+} from "./finnhub.js";
 import type { CandleData, TradeGuide } from "../shared/types";
 
 // ─── 주요 종목 리스트 (상위 1,000대 종목) ──────────────────────────────────────────
