@@ -293,7 +293,7 @@ export default function Scanner() {
                 ) : (
                   <BrainCircuit className="w-4 h-4" />
                 )}
-                AI 스캔
+                {quantMutation.isPending ? "AI 분석 중..." : "AI 조건 설정"}
               </Button>
             </div>
             
@@ -634,7 +634,7 @@ export default function Scanner() {
                           손절가
                         </TableHead>
                         <TableHead className="text-xs text-muted-foreground text-center">
-                          R/R
+                          손익비 (R/R)
                         </TableHead>
                         <TableHead className="text-xs text-muted-foreground">
                           투자 전략

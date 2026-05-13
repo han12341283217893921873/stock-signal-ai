@@ -548,7 +548,7 @@ export default function StockDetail() {
             <div className="flex items-center gap-8 bg-muted/20 p-4 lg:p-6 rounded-2xl border border-border/40 min-w-[300px] justify-between lg:justify-end">
               <div className="text-right">
                 <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest mb-1">
-                  REAL-TIME PRICE
+                  실시간 현재가
                 </p>
                 <div
                   className={`text-4xl lg:text-5xl font-black font-mono tracking-tighter ${flashClass}`}
@@ -613,7 +613,7 @@ export default function StockDetail() {
                 variant="outline"
                 className="text-[10px] h-6 px-2.5 border-border/60 text-muted-foreground font-mono bg-muted/20"
               >
-                AI STRENGTH: {displaySummary?.signal.strength}pt
+                AI 신호 강도: {displaySummary?.signal.strength}점
               </Badge>
             </div>
           </div>
@@ -661,7 +661,7 @@ export default function StockDetail() {
 
                 <div className="absolute top-4 left-4 z-10 flex items-center gap-2">
                   <Badge className="bg-background/60 backdrop-blur-md border-border/40 text-[10px] h-6 px-2">
-                    LIVE CHART
+                    실시간 차트
                   </Badge>
                   <div className="flex bg-background/60 backdrop-blur-md rounded-lg p-0.5 border border-border/40">
                     <Button

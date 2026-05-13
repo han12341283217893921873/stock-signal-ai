@@ -76,7 +76,7 @@ export default function MacroContext({
           </div>
           <div className="flex-1 min-w-0">
             <h4 className="text-sm font-bold flex items-center gap-2 mb-1">
-              시장 상황 분석 (Macro Context)
+              시장 환경 분석
               <TooltipProvider>
                 <Tooltip>
                   <TooltipTrigger>
@@ -117,7 +117,7 @@ export default function MacroContext({
                 variant="outline"
                 className={`text-[10px] font-mono bg-background/50 py-0 px-1.5 h-5 flex items-center gap-1 ${isVixHigh ? "border-bear/50 text-bear" : ""}`}
               >
-                VIX {context.vix.toFixed(1)} {isVixHigh ? " (변동성 높음)" : ""}
+                VIX {context.vix.toFixed(1)} {isVixHigh ? " ⚠️ 고변동성" : ""}
               </Badge>
               <Badge
                 variant="outline"

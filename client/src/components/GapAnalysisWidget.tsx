@@ -22,7 +22,7 @@ export default function GapAnalysisWidget({ ticker }: GapAnalysisWidgetProps) {
       <CardHeader className="pb-2 flex flex-row items-center justify-between">
         <CardTitle className="text-sm font-bold flex items-center gap-2">
           <Zap className="h-4 w-4 text-amber-400" />
-          오프닝 갭 분석 (Gap Analysis)
+          오프닝 갭 분석
         </CardTitle>
         <Badge
           variant="outline"
@@ -39,7 +39,7 @@ export default function GapAnalysisWidget({ ticker }: GapAnalysisWidgetProps) {
         <div className="flex items-end justify-between">
           <div>
             <p className="text-[10px] text-muted-foreground font-bold uppercase">
-              오늘 시가 갭
+              시가 갭 (오늘 기준)
             </p>
             <div className="flex items-center gap-1">
               {isGapUp ? (
@@ -56,7 +56,7 @@ export default function GapAnalysisWidget({ ticker }: GapAnalysisWidgetProps) {
           </div>
           <div className="text-right">
             <p className="text-[10px] text-muted-foreground font-bold uppercase">
-              갭 필 확률 (Gap Fill)
+              갭 매워질 확률
             </p>
             <p className="text-sm font-bold text-amber-400">
               {gap.fillProbability}%

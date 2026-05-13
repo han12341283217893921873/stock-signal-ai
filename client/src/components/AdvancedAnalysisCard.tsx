@@ -30,7 +30,7 @@ export default function AdvancedAnalysisCard({ ticker }: { ticker: string }) {
         <CardHeader className="pb-2">
           <CardTitle className="text-sm font-bold flex items-center gap-2">
             <ShieldCheck className="w-4 h-4 text-primary" />
-            시장 기상도 (Macro Defense)
+            거시경제 방어막 (시장 환경)
           </CardTitle>
         </CardHeader>
         <CardContent>
@@ -44,13 +44,16 @@ export default function AdvancedAnalysisCard({ ticker }: { ticker: string }) {
                  analysis.marketWeather.status === 'cloudy' ? <Cloud /> : <Sun />}
               </div>
               <div>
-                <p className="font-black text-lg">{analysis.marketWeather.status.toUpperCase()}</p>
+                <p className="font-black text-lg">
+                {analysis.marketWeather.status === 'storm' ? '⛈️ 폭풍 장세' :
+                 analysis.marketWeather.status === 'cloudy' ? '☁️ 흘림 주의' : '☀️ 맑음 호조'}
+              </p>
                 <p className="text-xs text-muted-foreground">{analysis.marketWeather.reason}</p>
               </div>
             </div>
             <div className="text-right">
               <p className="text-2xl font-black text-primary">{analysis.marketWeather.score}점</p>
-              <Badge variant="outline" className="text-[10px]">Weather Score</Badge>
+              <Badge variant="outline" className="text-[10px]">AI 시장 점수</Badge>
             </div>
           </div>
         </CardContent>
@@ -61,7 +64,7 @@ export default function AdvancedAnalysisCard({ ticker }: { ticker: string }) {
         <Card className="bg-card/50">
           <CardHeader className="pb-2">
             <CardTitle className="text-[11px] uppercase tracking-widest text-muted-foreground flex items-center gap-2">
-              <Zap className="w-3 h-3" /> Sector Radar
+              <Zap className="w-3 h-3" /> 섹터 동향
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -84,7 +87,7 @@ export default function AdvancedAnalysisCard({ ticker }: { ticker: string }) {
         <Card className="bg-card/50">
           <CardHeader className="pb-2">
             <CardTitle className="text-[11px] uppercase tracking-widest text-muted-foreground flex items-center gap-2">
-              <MessageSquare className="w-3 h-3" /> Social Sentiment
+              <MessageSquare className="w-3 h-3" /> 시장 심리 지수
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -127,7 +130,7 @@ export default function AdvancedAnalysisCard({ ticker }: { ticker: string }) {
           {analysis.hedgeSuggestions.length > 0 && (
             <div className="mt-6 space-y-3">
               <p className="text-[10px] uppercase font-bold text-muted-foreground flex items-center gap-2">
-                <ShieldAlert className="w-3 h-3" /> Hedge Solution Required
+                <ShieldAlert className="w-3 h-3" /> 헤지 수단 제안 (리스크 관리)
               </p>
               {analysis.hedgeSuggestions.map(h => (
                 <div key={h.ticker} className="p-3 rounded-xl bg-card border border-border/50 flex items-center justify-between group hover:border-primary/50 transition-all">
