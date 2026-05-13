@@ -1,22 +1,24 @@
 {
-      "version": 2,
-      "functions": {
-              "api/index.ts": {
-                        "includeFiles": "{server/**,drizzle/**,shared/**}"
-              }
-      },
-      "rewrites": [
-              {
-                        "source": "/api/(.*)",
-                        "destination": "/api/index.ts"
-              },
-              {
-                        "source": "/trpc/(.*)",
-                        "destination": "/api/index.ts"
-              },
-              {
-                        "source": "/((?!api|trpc).*)",
-                        "destination": "/index.html"
-              }
-      ]
+  "version": 2,
+  "functions": {
+    "api/index.ts": {
+      "includeFiles": "{server/**,drizzle/**,shared/**}",
+      "maxDuration": 30,
+      "memory": 1024
+    }
+  },
+  "rewrites": [
+    {
+      "source": "/api/(.*)",
+      "destination": "/api/index.ts"
+    },
+    {
+      "source": "/trpc/(.*)",
+      "destination": "/api/index.ts"
+    },
+    {
+      "source": "/((?!api|trpc).*)",
+      "destination": "/index.html"
+    }
+  ]
 }

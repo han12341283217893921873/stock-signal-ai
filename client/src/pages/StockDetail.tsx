@@ -103,7 +103,7 @@ export default function StockDetail() {
     dataUpdatedAt: summaryUpdatedAt,
   } = trpc.stock.summary.useQuery(
     { ticker },
-    { enabled: !!ticker, refetchInterval: 2 * 1000, staleTime: 1 * 1000 }
+    { enabled: !!ticker, refetchInterval: 30 * 1000, staleTime: 25 * 1000 }
   );
 
   const realtimePrices = useMarketStream(ticker ? [ticker] : []);

@@ -179,15 +179,21 @@ export default function Scanner() {
             </p>
           </div>
           <div className="flex items-center gap-2.5">
-            <select
-              value={market}
-              onChange={e => handleMarketChange(e.target.value as Market)}
-              className="h-9 px-3 text-sm bg-card border border-border rounded-lg text-foreground focus:outline-none focus:ring-2 focus:ring-primary/50 cursor-pointer"
-            >
-              <option value="us">🇺🇸 미국 주식</option>
-              <option value="kr">🇰🇷 한국 주식</option>
-              <option value="all">🌏 전체</option>
-            </select>
+            <div className="flex bg-muted/50 p-1 rounded-lg border border-border/50">
+              {(["us", "kr", "all"] as Market[]).map(m => (
+                <Button
+                  key={m}
+                  variant={market === m ? "secondary" : "ghost"}
+                  size="sm"
+                  onClick={() => handleMarketChange(m)}
+                  className={`h-7 px-3 text-xs font-semibold ${
+                    market === m ? "bg-primary text-white shadow" : "text-muted-foreground"
+                  }`}
+                >
+                  {m === "us" ? "🇺🇸 미국" : m === "kr" ? "🇰🇷 한국" : "🌏 전체"}
+                </Button>
+              ))}
+            </div>
             <Button
               onClick={handleStartScan}
               disabled={isRunning || startScan.isPending}
@@ -373,23 +379,34 @@ export default function Scanner() {
                 <span className="text-[10px] font-mono">{minScore}pt</span>
               </div>
               
-              <div className="hidden md:flex items-center gap-3 bg-card px-3 py-1.5 rounded-md border border-border/50">
-                <span className="text-[10px] text-muted-foreground font-bold">RSI 조건:</span>
-                <select 
-                  className="text-[10px] bg-transparent border-none outline-none focus:ring-0"
-                  onChange={(e) => {
-                    const val = e.target.value;
-                    if (val === "all") setRsiRange({ min: 0, max: 100 });
-                    else if (val === "oversold") setRsiRange({ min: 0, max: 35 });
-                    else if (val === "overbought") setRsiRange({ min: 70, max: 100 });
-                    else if (val === "neutral") setRsiRange({ min: 35, max: 70 });
-                  }}
-                >
-                  <option value="all">전체 구간</option>
-                  <option value="oversold">과매도 (0~35)</option>
-                  <option value="neutral">중립 (35~70)</option>
-                  <option value="overbought">과매수 (70~100)</option>
-                </select>
+              <div className="hidden md:flex items-center gap-1 bg-card px-1 py-1 rounded-md border border-border/50">
+                <span className="text-[10px] text-muted-foreground font-bold px-1">RSI:</span>
+                {[
+                  { label: "전체", val: "all" },
+                  { label: "과매도", val: "oversold" },
+                  { label: "중립", val: "neutral" },
+                  { label: "과매수", val: "overbought" },
+                ].map(opt => (
+                  <button
+                    key={opt.val}
+                    onClick={() => {
+                      if (opt.val === "all") setRsiRange({ min: 0, max: 100 });
+                      else if (opt.val === "oversold") setRsiRange({ min: 0, max: 35 });
+                      else if (opt.val === "overbought") setRsiRange({ min: 70, max: 100 });
+                      else if (opt.val === "neutral") setRsiRange({ min: 35, max: 70 });
+                    }}
+                    className={`text-[10px] px-2 py-0.5 rounded font-medium transition-all ${
+                      (opt.val === "all" && rsiRange.min === 0 && rsiRange.max === 100) ||
+                      (opt.val === "oversold" && rsiRange.max === 35) ||
+                      (opt.val === "overbought" && rsiRange.min === 70) ||
+                      (opt.val === "neutral" && rsiRange.min === 35 && rsiRange.max === 70)
+                        ? "bg-primary text-white"
+                        : "text-muted-foreground hover:text-foreground"
+                    }`}
+                  >
+                    {opt.label}
+                  </button>
+                ))}
               </div>
 
               <Button

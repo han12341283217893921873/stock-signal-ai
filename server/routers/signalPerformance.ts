@@ -1,6 +1,6 @@
-import { publicProcedure, protectedProcedure, router } from "../_core/trpc";
+import { publicProcedure, protectedProcedure, router } from "../_core/trpc.js";
 import { z } from "zod";
-import { getSignalPerformanceStats, getRecentSignalPerformances } from "../db";
+import { getSignalPerformanceStats, getRecentSignalPerformances } from "../db.js";
 
 export const signalPerformanceRouter = router({
   /** 신호 성과 통계 (전체 승률, 평균 수익률 등) */

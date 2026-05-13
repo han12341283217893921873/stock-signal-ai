@@ -16,10 +16,17 @@ import AIHub from "@/pages/AIHub";
 import EarningsCalendar from "@/pages/EarningsCalendar";
 import SectorHeatmapPage from "@/pages/SectorHeatmapPage";
 import DivergenceStrategy from "@/pages/DivergenceStrategy";
-
+import Backtest from "@/pages/Backtest";
+import DividendTracker from "@/pages/DividendTracker";
+import InvestmentPlan from "@/pages/InvestmentPlan";
+import GlobalRiskAnalysis from "@/pages/GlobalRiskAnalysis";
+import RebalancingTool from "@/pages/RebalancingTool";
+import TaxLossHarvesting from "@/pages/TaxLossHarvesting";
+import PaperTrading from "@/pages/PaperTrading";
 
 import { useAuth } from "./_core/hooks/useAuth";
 import { Skeleton } from "./components/ui/skeleton";
+import { useEffect } from "react";
 
 function ProtectedRoute({ component: Component, ...rest }: any) {
   const { user, loading } = useAuth();
@@ -44,11 +51,20 @@ function ProtectedRoute({ component: Component, ...rest }: any) {
   return <Component {...rest} />;
 }
 
+function RedirectToHome() {
+  const [, setLocation] = useLocation();
+  useEffect(() => { setLocation("/"); }, []);
+  return null;
+}
+
 function Router() {
   return (
     <Switch>
       <Route path="/" component={RootPage} />
       <Route path="/landing" component={Landing} />
+      {/* Redirect common alternative paths */}
+      <Route path="/dashboard" component={RedirectToHome} />
+      <Route path="/home" component={RedirectToHome} />
 
       {/* Protected Routes */}
       <Route path="/stock/:ticker">
@@ -66,7 +82,9 @@ function Router() {
       <Route path="/alerts">
         {() => <ProtectedRoute component={Alerts} />}
       </Route>
-      <Route path="/ai-hub">{() => <ProtectedRoute component={AIHub} />}</Route>
+      <Route path="/ai-hub">
+        {() => <ProtectedRoute component={AIHub} />}
+      </Route>
       <Route path="/earnings-calendar">
         {() => <ProtectedRoute component={EarningsCalendar} />}
       </Route>
@@ -76,7 +94,27 @@ function Router() {
       <Route path="/divergence-strategy">
         {() => <ProtectedRoute component={DivergenceStrategy} />}
       </Route>
-
+      <Route path="/backtest">
+        {() => <ProtectedRoute component={Backtest} />}
+      </Route>
+      <Route path="/dividend-tracker">
+        {() => <ProtectedRoute component={DividendTracker} />}
+      </Route>
+      <Route path="/investment-plan">
+        {() => <ProtectedRoute component={InvestmentPlan} />}
+      </Route>
+      <Route path="/global-risk">
+        {() => <ProtectedRoute component={GlobalRiskAnalysis} />}
+      </Route>
+      <Route path="/rebalancing">
+        {() => <ProtectedRoute component={RebalancingTool} />}
+      </Route>
+      <Route path="/tax-loss">
+        {() => <ProtectedRoute component={TaxLossHarvesting} />}
+      </Route>
+      <Route path="/paper-trading">
+        {() => <ProtectedRoute component={PaperTrading} />}
+      </Route>
 
       <Route path="/404" component={NotFound} />
       <Route component={NotFound} />

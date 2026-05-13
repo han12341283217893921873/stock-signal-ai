@@ -531,6 +531,12 @@ export default function DashboardHome() {
           )}
         </section>
 
+        {/* QUICK STATS: Portfolio & Signal Performance */}
+        <section className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <PortfolioMiniWidget />
+          <SignalPerformanceMiniWidget />
+        </section>
+
         {/* DISCOVERY: AI Top Picks & Macro */}
         <section className="grid grid-cols-1 lg:grid-cols-12 gap-8">
           <div className="lg:col-span-6 space-y-6">

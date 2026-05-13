@@ -693,23 +693,29 @@ export default function AIHub() {
 
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
           <TabsList className="w-full justify-start h-auto flex-wrap bg-card border rounded-lg p-1 mb-6">
-            <TabsTrigger value="portfolio" className="py-2.5">
-              1. AI 포트폴리오 진단
+            <TabsTrigger value="portfolio" className="py-2 px-3 text-xs gap-1.5">
+              <Briefcase className="w-3.5 h-3.5" />
+              포트폴리오 진단
             </TabsTrigger>
-            <TabsTrigger value="earnings" className="py-2.5">
-              2. 실적 콜 요약
+            <TabsTrigger value="earnings" className="py-2 px-3 text-xs gap-1.5">
+              <FileText className="w-3.5 h-3.5" />
+              실적 콜 요약
             </TabsTrigger>
-            <TabsTrigger value="peer" className="py-2.5">
-              3. 종목 배틀 분석
+            <TabsTrigger value="peer" className="py-2 px-3 text-xs gap-1.5">
+              <Swords className="w-3.5 h-3.5" />
+              종목 배틀
             </TabsTrigger>
-            <TabsTrigger value="themes" className="py-2.5">
-              4. AI 테마 발굴
+            <TabsTrigger value="themes" className="py-2 px-3 text-xs gap-1.5">
+              <BrainCircuit className="w-3.5 h-3.5" />
+              테마 발굴
             </TabsTrigger>
-            <TabsTrigger value="social" className="py-2.5">
-              5. 소셜 감성 추적
+            <TabsTrigger value="social" className="py-2 px-3 text-xs gap-1.5">
+              <TrendingUp className="w-3.5 h-3.5" />
+              소셜 감성
             </TabsTrigger>
-            <TabsTrigger value="smartmoney" className="py-2.5">
-              6. 스마트 머니
+            <TabsTrigger value="smartmoney" className="py-2 px-3 text-xs gap-1.5">
+              <Briefcase className="w-3.5 h-3.5" />
+              스마트 머니
             </TabsTrigger>
           </TabsList>
 

@@ -45,6 +45,12 @@ import {
   Moon,
   Cloud,
   CloudRain,
+  TestTube2,
+  Coins,
+  ShieldAlert,
+  RefreshCcw,
+  Scissors,
+  CandlestickChart,
 } from "lucide-react";
 import { CSSProperties, useEffect, useRef, useState } from "react";
 import { useLocation } from "wouter";
@@ -62,13 +68,25 @@ const menuGroups = [
     items: [
       { icon: LayoutDashboard, label: "대시보드", path: "/" },
       { icon: Zap, label: "종목 스캐너", path: "/scanner" },
-      { icon: Lightbulb, label: "가치-심리 괴리", path: "/divergence-strategy" },
       { icon: History, label: "신호 히스토리", path: "/signals" },
     ],
   },
   {
+    label: "투자 분석",
+    items: [
+      { icon: CandlestickChart, label: "백테스팅", path: "/backtest" },
+      { icon: Lightbulb, label: "가치-심리 괴리", path: "/divergence-strategy" },
+      { icon: ShieldAlert, label: "글로벌 리스크", path: "/global-risk" },
+    ],
+  },
+  {
     label: "포트폴리오",
-    items: [{ icon: Wallet, label: "포트폴리오", path: "/portfolio" }],
+    items: [
+      { icon: Wallet, label: "포트폴리오", path: "/portfolio" },
+      { icon: TestTube2, label: "모의 투자", path: "/paper-trading" },
+      { icon: LineChart, label: "투자 계획", path: "/investment-plan" },
+      { icon: RefreshCcw, label: "리밸런싱", path: "/rebalancing" },
+    ],
   },
   {
     label: "AI 분석",
@@ -76,6 +94,13 @@ const menuGroups = [
       { icon: BrainCircuit, label: "AI 분석 허브", path: "/ai-hub" },
       { icon: Calendar, label: "실적 캘린더", path: "/earnings-calendar" },
       { icon: BarChart3, label: "섹터 히트맵", path: "/sector-heatmap" },
+    ],
+  },
+  {
+    label: "유틸리티",
+    items: [
+      { icon: Coins, label: "배당 트래커", path: "/dividend-tracker" },
+      { icon: Scissors, label: "세금 손실 추수", path: "/tax-loss" },
     ],
   },
   {
