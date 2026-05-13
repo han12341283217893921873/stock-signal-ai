@@ -9,11 +9,15 @@ import {
   watchlist,
   signalHistory,
   stockNotes,
+  newsSummaries,
+  chartPatternCache,
 } from "./schema.js";
 import type {
   InsertWatchlist,
   InsertSignalHistory,
   InsertStockNote,
+  InsertNewsSummary,
+  InsertChartPatternCache,
 } from "./schema.js";
 import { ENV } from "./_core/env.js";
 
@@ -913,8 +917,7 @@ export async function updateUserBalance(
 
 // ─── News Summaries ──────────────────────────────────────────────────────────
 
-import { newsSummaries } from "../drizzle/schema";
-import type { InsertNewsSummary } from "../drizzle/schema";
+// ─── News Summaries ──────────────────────────────────────────────────────────
 
 export async function getCachedNewsSummary(ticker: string) {
   const db = await getDb();
@@ -952,8 +955,7 @@ export async function saveNewsSummary(data: InsertNewsSummary) {
 
 // ─── Chart Pattern Cache ──────────────────────────────────────────────────
 
-import { chartPatternCache } from "../drizzle/schema";
-import type { InsertChartPatternCache } from "../drizzle/schema";
+// ─── Chart Pattern Cache ──────────────────────────────────────────────────
 
 export async function getCachedChartPattern(ticker: string) {
   const db = await getDb();

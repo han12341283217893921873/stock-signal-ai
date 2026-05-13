@@ -3,7 +3,7 @@
  * Import shared types from this single entry point.
  */
 
-export type * from "../drizzle/schema";
+export type * from "../server/schema";
 export * from "./_core/errors";
 
 /** 기술적 지표 데이터 */
@@ -103,6 +103,7 @@ export interface StockSummary {
   sector?: string;
   industry?: string;
   finnhubIndustry?: string;
+  delistingRisk?: { isHighRisk: boolean; warnings: string[] };
 }
 
 /** 종목 상세 데이터 (차트용) */

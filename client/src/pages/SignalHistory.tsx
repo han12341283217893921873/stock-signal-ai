@@ -15,6 +15,7 @@ import {
   Trophy,
   PieChart,
   Bell,
+  BarChart2,
 } from "lucide-react";
 import { useLocation } from "wouter";
 import { toast } from "sonner";
@@ -178,10 +179,10 @@ export default function SignalHistory() {
                   </p>
                   <div className="flex items-baseline gap-2">
                     <span className="text-3xl font-black font-mono text-emerald-400">
-                      {stats.winningSignals}
+                      {stats.wins}
                     </span>
                     <span className="text-sm text-muted-foreground font-mono">
-                      / {stats.totalClosed} 건
+                      / {stats.total} 건
                     </span>
                   </div>
                 </div>
@@ -199,13 +200,13 @@ export default function SignalHistory() {
                     평균 수익률 (건당)
                   </p>
                   <div className="flex items-baseline gap-2">
-                    <span className={`text-3xl font-black font-mono ${stats.averageProfitPercent >= 0 ? "text-emerald-400" : "text-red-400"}`}>
-                      {stats.averageProfitPercent >= 0 ? "+" : ""}{stats.averageProfitPercent.toFixed(2)}%
+                    <span className={`text-3xl font-black font-mono ${stats.avgReturn >= 0 ? "text-emerald-400" : "text-red-400"}`}>
+                      {stats.avgReturn >= 0 ? "+" : ""}{stats.avgReturn.toFixed(2)}%
                     </span>
                   </div>
                 </div>
-                <div className={`w-12 h-12 rounded-full flex items-center justify-center ${stats.averageProfitPercent >= 0 ? "bg-emerald-500/10" : "bg-red-500/10"}`}>
-                  <TrendingUp className={`w-6 h-6 ${stats.averageProfitPercent >= 0 ? "text-emerald-400" : "text-red-400"}`} />
+                <div className={`w-12 h-12 rounded-full flex items-center justify-center ${stats.avgReturn >= 0 ? "bg-emerald-500/10" : "bg-red-500/10"}`}>
+                  <TrendingUp className={`w-6 h-6 ${stats.avgReturn >= 0 ? "text-emerald-400" : "text-red-400"}`} />
                 </div>
               </CardContent>
             </Card>

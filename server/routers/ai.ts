@@ -113,7 +113,7 @@ ${rsiOverboughtPrompt}
 - 매출성장률: ${fundamentals?.revenueGrowth?.toFixed(2) ?? "N/A"}%
 
 최근 실시간 뉴스 헤드라인 (호재/악재 판독용):
-${news && news.length > 0 ? news.map(n => `- ${n.headline}`).join("\n") : "- 최근 뉴스 없음"}
+${news && news.length > 0 ? news.map(n => `- ${n.title}`).join("\n") : "- 최근 뉴스 없음"}
 
 다중 타임프레임 데이터:
 - 주봉(Weekly) 추이: ${weeklyCandles

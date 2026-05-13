@@ -14,7 +14,7 @@ import {
 import { getStockSummary, getQuote } from "./finnhub";
 import { notifyOwner } from "./_core/notification";
 import { eq } from "drizzle-orm";
-import { users } from "../drizzle/schema";
+import { users } from "./schema.js";
 
 const INTERVAL_MS = 2 * 60 * 1000; // 2분 (장중 빠른 알림 대응)
 const COOLDOWN_MS = 10 * 60 * 1000; // 10분 재발송 방지

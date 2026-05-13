@@ -958,7 +958,7 @@ export async function runScanner(market: "us" | "kr" | "all"): Promise<void> {
       const { saveScanHistory } = await import("./db");
       await saveScanHistory({
         market,
-        scannedAt: cache.completedAt!,
+        scannedAt: new Date(cache.completedAt!),
         results: JSON.stringify(cache.results),
         topBuys: JSON.stringify(topBuys),
       });
